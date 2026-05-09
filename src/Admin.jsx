@@ -62,8 +62,12 @@ async function getTonightMessage() {
 async function saveTonightMessage(text) { await setDoc(doc(db, "settings", "tonight_msg"), { text }); }
 
 function toDateKey(d) {
-  return d.toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" });
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
+
 function getMonthKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`; }
 function getYearKey(d)  { return `${d.getFullYear()}`; }
 function getPeriodLabel(period) {
