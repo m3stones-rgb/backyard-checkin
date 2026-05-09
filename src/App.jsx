@@ -352,7 +352,8 @@ export default function App() {
     const freshList  = await getTonightList();
     setVisitCount(newCount); setAlreadyChecked(true); setLastVisitDate(lastDate);
     setTonightList(freshList); setCheckinMessage(ciMsg); setTonightMessage(tMsg);
-    setMyRankings(rankings); setScreen("success");
+    setMyRankings(rankings); window.history.replaceState({}, "", "/");
+setScreen("success");
   }
 
   async function openHistory() {
