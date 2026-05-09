@@ -62,8 +62,12 @@ async function getTonightMessage() {
 
 // --- Utils ---
 function toDateKey(d) {
-  return d.toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" });
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
+
 function getRank(n) {
   if (n >= 20) return { label: "VETERAN", cls: "rank-veteran" };
   if (n >= 5)  return { label: "REGULAR", cls: "rank-regular" };
