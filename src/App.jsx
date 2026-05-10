@@ -67,7 +67,6 @@ function toDateKey(d) {
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
-
 function getRank(n) {
   if (n >= 20) return { label: "VETERAN", cls: "rank-veteran" };
   if (n >= 5)  return { label: "REGULAR", cls: "rank-regular" };
@@ -141,6 +140,7 @@ input::placeholder { color:rgba(200,180,140,0.2); }
 .btn-outline:hover { border-color:rgba(139,115,85,0.6); color:#e8d8b8; }
 .btn-checkin { width:100%; background:transparent; border:1px solid #7ec600; border-radius:2px; padding:18px; font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:5px; color:#7ec600; cursor:pointer; transition:all 0.2s; }
 .btn-checkin:hover { background:#7ec600; color:#1a1410; }
+.btn-checkin:disabled { opacity:0.5; cursor:not-allowed; }
 .btn-history { width:100%; background:transparent; border:1px solid rgba(139,115,85,0.25); border-radius:2px; padding:11px; font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:3px; color:rgba(200,180,140,0.4); cursor:pointer; transition:all 0.2s; margin-top:10px; }
 .btn-history:hover { border-color:rgba(139,115,85,0.5); color:#e8d8b8; }
 .already-checked { text-align:center; font-size:11px; letter-spacing:3px; color:rgba(126,198,0,0.6); padding:14px; border:1px solid rgba(126,198,0,0.2); border-radius:2px; text-transform:uppercase; }
@@ -259,7 +259,7 @@ export default function App() {
   const [visitCount, setVisitCount]         = useState(0);
   const [tonightList, setTonightList]       = useState([]);
   const [alreadyChecked, setAlreadyChecked] = useState(false);
-  const [checking, setChecking] = useState(false);
+  const [checking, setChecking]             = useState(false);
   const [formErr, setFormErr]               = useState("");
   const [lastVisitDate, setLastVisitDate]   = useState(null);
   const [checkinMessage, setCheckinMessage] = useState("");
@@ -331,9 +331,9 @@ export default function App() {
 
   async function handleCheckin() {
     if (checking) return;
-setChecking(true);
+    setChecking(true);
     const user = await getUser(nickname);
-    if (!user) return;
+    if (!user) { setChecking(false); return; }
     const lastDate = await getLastVisitDate(nickname);
     const newCount = (user.visits||0) + 1;
     await updateUser(nickname, { visits: newCount });
@@ -348,16 +348,17 @@ setChecking(true);
       tonight.push({ name:nickname, visits:newCount, bio:user.bio||"" });
       await saveTonightList(tonight);
     }
-    const msgs       = await getMilestoneMessages();
-    const ciMsg      = msgs[newCount] || "チェックイン完了！\n今夜もよろしくお願いします。";
-    const tMsg       = await getTonightMessage();
-    const rankings   = await getMyRankings(nickname);
-    const freshList  = await getTonightList();
+    const msgs      = await getMilestoneMessages();
+    const ciMsg     = msgs[newCount] || "チェックイン完了！\n今夜もよろしくお願いします。";
+    const tMsg      = await getTonightMessage();
+    const rankings  = await getMyRankings(nickname);
+    const freshList = await getTonightList();
     setVisitCount(newCount); setAlreadyChecked(true); setLastVisitDate(lastDate);
     setTonightList(freshList); setCheckinMessage(ciMsg); setTonightMessage(tMsg);
-    setMyRankings(rankings); window.history.replaceState({}, "", "/");
-setScreen("success");
-setChecking(false);
+    setMyRankings(rankings);
+    setChecking(false);
+    window.history.replaceState({}, "", "/");
+    setScreen("success");
   }
 
   async function openHistory() {
@@ -417,12 +418,19 @@ setChecking(false);
                   ? <div className="bio-edit-row"><input type="text" placeholder="例：薬剤師やってます" value={bioInput} onChange={e=>setBioInput(e.target.value.slice(0,20))} onKeyDown={e=>e.key==="Enter"&&saveBio()} maxLength={20}/><span className="bio-chars">{bioInput.length}/20</span><button className="btn-bio-save" onClick={saveBio}>保存</button></div>
                   : <div className="bio-row">{bio?<div className="bio-display">「{bio}」</div>:<div className="bio-empty">一言を追加...</div>}<button className="btn-bio-edit" onClick={()=>{setBioInput(bio);setEditingBio(true);}}>{bio?"編集":"追加"}</button></div>
                 }
-         {fromQR && <div style={{marginBottom:"12px"}}>{alreadyChecked?<div className="already-checked">✓ 今夜チェックイン済み</div>:<button className="btn-checkin" onClick={handleCheckin} disabled={checking}>{checking ? "..." : "CHECK IN"}</button>}</div>}
-}</div>}
+                {fromQR && (
+                  <div style={{marginBottom:"12px"}}>
+                    {alreadyChecked
+                      ? <div className="already-checked">✓ 今夜チェックイン済み</div>
+                      : <button className="btn-checkin" onClick={handleCheckin} disabled={checking}>{checking?"...":"CHECK IN"}</button>
+                    }
+                  </div>
+                )}
                 <button className="btn-history" onClick={openHistory}>MY HISTORY →</button>
                 <hr className="divider"/>
               </div>
-              {fromQR && (
+              {/* チェックイン済みの時だけTONIGHT LISTを表示 */}
+              {fromQR && alreadyChecked && (
                 <>
                   <div className="section-title">TONIGHT<span className="section-count">{tonightList.length} people</span></div>
                   <div className="member-list">
