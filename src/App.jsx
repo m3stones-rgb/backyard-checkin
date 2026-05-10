@@ -417,9 +417,7 @@ setChecking(false);
                   ? <div className="bio-edit-row"><input type="text" placeholder="例：薬剤師やってます" value={bioInput} onChange={e=>setBioInput(e.target.value.slice(0,20))} onKeyDown={e=>e.key==="Enter"&&saveBio()} maxLength={20}/><span className="bio-chars">{bioInput.length}/20</span><button className="btn-bio-save" onClick={saveBio}>保存</button></div>
                   : <div className="bio-row">{bio?<div className="bio-display">「{bio}」</div>:<div className="bio-empty">一言を追加...</div>}<button className="btn-bio-edit" onClick={()=>{setBioInput(bio);setEditingBio(true);}}>{bio?"編集":"追加"}</button></div>
                 }
-                {fromQR && <div style={{marginBottom:"12px"}}>{alreadyChecked?<div className="already-checked">✓ 今夜チェックイン済み</div>:<<button className="btn-checkin" onClick={handleCheckin} disabled={checking}>
-  {checking ? "..." : "CHECK IN"}
-</button>
+         {fromQR && <div style={{marginBottom:"12px"}}>{alreadyChecked?<div className="already-checked">✓ 今夜チェックイン済み</div>:<button className="btn-checkin" onClick={handleCheckin} disabled={checking}>{checking ? "..." : "CHECK IN"}</button>}</div>}
 }</div>}
                 <button className="btn-history" onClick={openHistory}>MY HISTORY →</button>
                 <hr className="divider"/>
