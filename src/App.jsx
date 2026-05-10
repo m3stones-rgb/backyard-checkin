@@ -450,7 +450,7 @@ setScreen("success");
                 </div>
                 {lastVisitDate&&<div className="last-visit-box"><div className="last-visit-label">Last Visit</div><div className="last-visit-date">{lastVisitDate}</div></div>}
                 <div className={`rank-badge ${rank.cls}`} style={{display:"block",textAlign:"center",padding:"6px 0"}}>{rank.label}</div>
-                <button className="btn-primary" style={{marginTop:"20px"}} onClick={()=>setScreen("profile")}>TONIGHT'S LIST →</button>
+                <button className="btn-primary" style={{marginTop:"20px"}} onClick={()=>setScreen("profile")}>PROFILE →</button>
               </div>
               {tonightMessage&&<div className="tonight-msg-card"><div className="tonight-msg-text">{tonightMessage}</div></div>}
               <div className="section-title">TONIGHT<span className="section-count">{tonightList.length} people</span></div>
