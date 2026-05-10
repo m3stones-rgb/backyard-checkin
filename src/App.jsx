@@ -259,6 +259,7 @@ export default function App() {
   const [visitCount, setVisitCount]         = useState(0);
   const [tonightList, setTonightList]       = useState([]);
   const [alreadyChecked, setAlreadyChecked] = useState(false);
+  const [checking, setChecking] = useState(false);
   const [formErr, setFormErr]               = useState("");
   const [lastVisitDate, setLastVisitDate]   = useState(null);
   const [checkinMessage, setCheckinMessage] = useState("");
@@ -329,6 +330,8 @@ export default function App() {
   }
 
   async function handleCheckin() {
+    if (checking) return;
+setChecking(true);
     const user = await getUser(nickname);
     if (!user) return;
     const lastDate = await getLastVisitDate(nickname);
@@ -354,6 +357,7 @@ export default function App() {
     setTonightList(freshList); setCheckinMessage(ciMsg); setTonightMessage(tMsg);
     setMyRankings(rankings); window.history.replaceState({}, "", "/");
 setScreen("success");
+setChecking(false);
   }
 
   async function openHistory() {
@@ -413,7 +417,10 @@ setScreen("success");
                   ? <div className="bio-edit-row"><input type="text" placeholder="例：薬剤師やってます" value={bioInput} onChange={e=>setBioInput(e.target.value.slice(0,20))} onKeyDown={e=>e.key==="Enter"&&saveBio()} maxLength={20}/><span className="bio-chars">{bioInput.length}/20</span><button className="btn-bio-save" onClick={saveBio}>保存</button></div>
                   : <div className="bio-row">{bio?<div className="bio-display">「{bio}」</div>:<div className="bio-empty">一言を追加...</div>}<button className="btn-bio-edit" onClick={()=>{setBioInput(bio);setEditingBio(true);}}>{bio?"編集":"追加"}</button></div>
                 }
-                {fromQR && <div style={{marginBottom:"12px"}}>{alreadyChecked?<div className="already-checked">✓ 今夜チェックイン済み</div>:<button className="btn-checkin" onClick={handleCheckin}>CHECK IN</button>}</div>}
+                {fromQR && <div style={{marginBottom:"12px"}}>{alreadyChecked?<div className="already-checked">✓ 今夜チェックイン済み</div>:<<button className="btn-checkin" onClick={handleCheckin} disabled={checking}>
+  {checking ? "..." : "CHECK IN"}
+</button>
+}</div>}
                 <button className="btn-history" onClick={openHistory}>MY HISTORY →</button>
                 <hr className="divider"/>
               </div>
