@@ -439,7 +439,6 @@ export default function App() {
                       : tonightList.map((m,i)=>(
                         <div key={i} className={`member-item ${m.name===nickname?"me":""}`}>
                           <div style={{flex:1}}><div className="member-name">{m.name}</div>{m.bio&&<div className="member-bio">「{m.bio}」</div>}</div>
-                          <div style={{textAlign:"right"}}><div className="member-visits">{m.visits}<span>visits</span></div></div>
                         </div>
                       ))
                     }
@@ -471,7 +470,6 @@ export default function App() {
                 {tonightList.map((m,i)=>(
                   <div key={i} className={`member-item ${m.name===nickname?"me":""}`}>
                     <div style={{flex:1}}><div className="member-name">{m.name}</div>{m.bio&&<div className="member-bio">「{m.bio}」</div>}</div>
-                    <div style={{textAlign:"right"}}><div className="member-visits">{m.visits}<span>visits</span></div></div>
                   </div>
                 ))}
               </div>
