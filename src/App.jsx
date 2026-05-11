@@ -329,7 +329,7 @@ export default function App() {
     }
   }
 
-  async function handleCheckin() {
+ async function handleCheckin() {
   if (checking) return;
   setChecking(true);
   try {
@@ -349,7 +349,7 @@ export default function App() {
       .map(([k]) => k)
       .sort((a, b) => b.localeCompare(a))[0] || null;
 
-    // rankingsをallLogから計算
+    // rankingsをallLogから計算（今日分を手動で追加）
     const now = new Date();
     const yearCounts = {}; const monthCounts = {};
     Object.entries(allLog).forEach(([k, entries]) => {
@@ -359,6 +359,8 @@ export default function App() {
       if (year  === getYearKey(now))  entries.forEach(e => { yearCounts[e.name]  = (yearCounts[e.name]  || 0) + 1; });
       if (month === getMonthKey(now)) entries.forEach(e => { monthCounts[e.name] = (monthCounts[e.name] || 0) + 1; });
     });
+    yearCounts[nickname]  = (yearCounts[nickname]  || 0) + 1;
+    monthCounts[nickname] = (monthCounts[nickname] || 0) + 1;
 
     // updateUserを先に終わらせてからallUsers取得
     await updateUser(nickname, { visits: newCount });
@@ -403,7 +405,6 @@ export default function App() {
     setFormErr("エラーが発生しました。もう一度お試しください。");
   }
 }
-
 
   async function openHistory() {
     setHistoryTab("visits");
