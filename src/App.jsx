@@ -330,36 +330,73 @@ export default function App() {
   }
 
   async function handleCheckin() {
-    if (checking) return;
-    setChecking(true);
-    const user = await getUser(nickname);
+  if (checking) return;
+  setChecking(true);
+  try {
+    const [user, allLog, tonight] = await Promise.all([
+      getUser(nickname),
+      getAllLog(),
+      getTonightList(),
+    ]);
     if (!user) { setChecking(false); return; }
-    const lastDate = await getLastVisitDate(nickname);
-    const newCount = (user.visits||0) + 1;
-    await updateUser(nickname, { visits: newCount });
+
+    const newCount = (user.visits || 0) + 1;
     const dk = toDateKey(new Date());
-    const entries = await getLogByDate(dk);
-    if (!entries.find(e => e.name===nickname)) {
-      entries.push({ name:nickname, visits:newCount, time: new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"}) });
-      await saveLogByDate(dk, entries);
-    }
-    const tonight = await getTonightList();
-    if (!tonight.some(t => t.name===nickname)) {
-      tonight.push({ name:nickname, visits:newCount, bio:user.bio||"" });
-      await saveTonightList(tonight);
-    }
-    const msgs      = await getMilestoneMessages();
-    const ciMsg     = msgs[newCount] || "チェックイン完了！\n今夜もよろしくお願いします。";
-    const tMsg      = await getTonightMessage();
-    const rankings  = await getMyRankings(nickname);
-    const freshList = await getTonightList();
+
+    // lastVisitDateをallLogから計算
+    const lastDate = Object.entries(allLog)
+      .filter(([k, entries]) => k !== dk && entries.some(e => e.name === nickname))
+      .map(([k]) => k)
+      .sort((a, b) => b.localeCompare(a))[0] || null;
+
+    // rankingsもallLogから計算
+    const now = new Date();
+    const yearCounts = {}; const monthCounts = {};
+    Object.entries(allLog).forEach(([k, entries]) => {
+      const d = new Date(k);
+      if (getYearKey(d) === getYearKey(now))  entries.forEach(e => { yearCounts[e.name]  = (yearCounts[e.name]  || 0) + 1; });
+      if (getMonthKey(d) === getMonthKey(now)) entries.forEach(e => { monthCounts[e.name] = (monthCounts[e.name] || 0) + 1; });
+    });
+    const users = await getAllUsers();
+    const totalList = Object.entries(users).map(([n,d]) => ({ name:n, count: d.visits||0 })).sort((a,b) => b.count-a.count);
+    const rankings = {
+      total: (totalList.findIndex(m => m.name === nickname) + 1) || null,
+      year:  (Object.entries(yearCounts).sort((a,b) => b[1]-a[1]).findIndex(([n]) => n === nickname) + 1) || null,
+      month: (Object.entries(monthCounts).sort((a,b) => b[1]-a[1]).findIndex(([n]) => n === nickname) + 1) || null,
+    };
+
+    // 書き込みデータ準備
+    const existingEntries = allLog[dk] || [];
+    const newEntries = existingEntries.find(e => e.name === nickname)
+      ? existingEntries
+      : [...existingEntries, { name: nickname, visits: newCount, time: new Date().toLocaleTimeString("ja-JP", {hour:"2-digit",minute:"2-digit"}) }];
+    const newTonight = tonight.some(t => t.name === nickname)
+      ? tonight
+      : [...tonight, { name: nickname, visits: newCount, bio: user.bio || "" }];
+
+    // 並列で書き込み＆取得
+    const [msgs, tMsg] = await Promise.all([
+      getMilestoneMessages(),
+      getTonightMessage(),
+      updateUser(nickname, { visits: newCount }),
+      saveLogByDate(dk, newEntries),
+      saveTonightList(newTonight),
+    ]);
+
+    const ciMsg = msgs[newCount] || "チェックイン完了！\n今夜もよろしくお願いします。";
+
     setVisitCount(newCount); setAlreadyChecked(true); setLastVisitDate(lastDate);
-    setTonightList(freshList); setCheckinMessage(ciMsg); setTonightMessage(tMsg);
+    setTonightList(newTonight); setCheckinMessage(ciMsg); setTonightMessage(tMsg);
     setMyRankings(rankings);
     setChecking(false);
     window.history.replaceState({}, "", "/");
     setScreen("success");
+  } catch (e) {
+    console.error(e);
+    setChecking(false);
+    setFormErr("エラーが発生しました。もう一度お試しください。");
   }
+}
 
   async function openHistory() {
     setHistoryTab("visits");
