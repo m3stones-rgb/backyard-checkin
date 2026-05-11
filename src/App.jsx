@@ -460,7 +460,7 @@ export default function App() {
                   <div style={{textAlign:"right"}}><div className="big-count">{visitCount}</div><div className="big-label">visits</div></div>
                 </div>
                 {editingBio
-                  ? <div className="bio-edit-row"><input type="text" placeholder="例：薬剤師やってます" value={bioInput} onChange={e=>setBioInput(e.target.value.slice(0,20))} onKeyDown={e=>e.key==="Enter"&&saveBio()} maxLength={20}/><span className="bio-chars">{bioInput.length}/20</span><button className="btn-bio-save" onClick={saveBio}>保存</button></div>
+                  ? <div className="bio-edit-row"><input type="text" placeholder="例：○○屋です/バナナが好き" value={bioInput} onChange={e=>setBioInput(e.target.value.slice(0,20))} onKeyDown={e=>e.key==="Enter"&&saveBio()} maxLength={20}/><span className="bio-chars">{bioInput.length}/20</span><button className="btn-bio-save" onClick={saveBio}>保存</button></div>
                   : <div className="bio-row">{bio?<div className="bio-display">「{bio}」</div>:<div className="bio-empty">一言を追加...</div>}<button className="btn-bio-edit" onClick={()=>{setBioInput(bio);setEditingBio(true);}}>{bio?"編集":"追加"}</button></div>
                 }
                 {fromQR && (
