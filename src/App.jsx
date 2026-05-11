@@ -349,16 +349,23 @@ export default function App() {
       .map(([k]) => k)
       .sort((a, b) => b.localeCompare(a))[0] || null;
 
-    // rankingsもallLogから計算
+    // rankingsをallLogから計算
     const now = new Date();
     const yearCounts = {}; const monthCounts = {};
     Object.entries(allLog).forEach(([k, entries]) => {
-      const d = new Date(k);
-      if (getYearKey(d) === getYearKey(now))  entries.forEach(e => { yearCounts[e.name]  = (yearCounts[e.name]  || 0) + 1; });
-      if (getMonthKey(d) === getMonthKey(now)) entries.forEach(e => { monthCounts[e.name] = (monthCounts[e.name] || 0) + 1; });
+      const parts = k.split("-");
+      const year  = parts[0];
+      const month = parts[0] + "-" + parts[1];
+      if (year  === getYearKey(now))  entries.forEach(e => { yearCounts[e.name]  = (yearCounts[e.name]  || 0) + 1; });
+      if (month === getMonthKey(now)) entries.forEach(e => { monthCounts[e.name] = (monthCounts[e.name] || 0) + 1; });
     });
+
+    // updateUserを先に終わらせてからallUsers取得
+    await updateUser(nickname, { visits: newCount });
     const users = await getAllUsers();
-    const totalList = Object.entries(users).map(([n,d]) => ({ name:n, count: d.visits||0 })).sort((a,b) => b.count-a.count);
+    const totalList = Object.entries(users)
+      .map(([n, d]) => ({ name: n, count: d.visits || 0 }))
+      .sort((a, b) => b.count - a.count);
     const rankings = {
       total: (totalList.findIndex(m => m.name === nickname) + 1) || null,
       year:  (Object.entries(yearCounts).sort((a,b) => b[1]-a[1]).findIndex(([n]) => n === nickname) + 1) || null,
@@ -378,7 +385,6 @@ export default function App() {
     const [msgs, tMsg] = await Promise.all([
       getMilestoneMessages(),
       getTonightMessage(),
-      updateUser(nickname, { visits: newCount }),
       saveLogByDate(dk, newEntries),
       saveTonightList(newTonight),
     ]);
@@ -397,6 +403,7 @@ export default function App() {
     setFormErr("エラーが発生しました。もう一度お試しください。");
   }
 }
+
 
   async function openHistory() {
     setHistoryTab("visits");
