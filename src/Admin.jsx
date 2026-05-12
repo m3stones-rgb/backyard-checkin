@@ -240,7 +240,7 @@ export default function App() {
 
   async function loadMembers() {
     const users = await getAllUsers();
-    setMembers(Object.entries(users).map(([name,d])=>({name,visits:d.visits||0,since:d.since||""})).sort((a,b)=>b.visits-a.visits));
+setMembers(Object.entries(users).map(([name,d])=>({name,visits:d.visits||0,since:d.since||"",bio:d.bio||""})).sort((a,b)=>b.visits-a.visits));
   }
 
   async function loadRanking() {
@@ -459,7 +459,17 @@ export default function App() {
                   {members.map((m,i)=>(
                     <div key={i} className="list-item">
                       <div className="list-item-row">
-                        <div><div className="item-name">{m.name}</div><div className="item-sub">登録日: {m.since}</div></div>
+                        <div style={{flex:1}}>
+  <div className="item-name">{m.name}</div>
+  <div className="item-sub">登録日: {m.since}</div>
+  {m.bio && (
+    <div style={{display:"flex",alignItems:"center",gap:"8px",marginTop:"6px"}}>
+      <div style={{fontSize:"12px",color:"rgba(200,180,140,0.5)",fontStyle:"italic"}}>「{m.bio}」</div>
+      <button className="btn-sm danger" style={{padding:"2px 8px",fontSize:"10px"}} onClick={async()=>{await updateUser(m.name,{bio:""});await loadMembers();showToast("コメントを削除しました");}}>削除</button>
+    </div>
+  )}
+</div>
+
                         <div className="item-count">{m.visits}<span>visits</span></div>
                       </div>
                       {editingName===m.name
